@@ -14,7 +14,7 @@ class ProductSeeder extends Seeder
     public function run(): void
     {
         // Добавим 10 тестовых товаров
-        foreach (range(1, 10) as $i) {
+        foreach (range(1, 50) as $i) {
             Product::create([
                 'name' => "Товар $i",
                 'price' => rand(500, 5000),

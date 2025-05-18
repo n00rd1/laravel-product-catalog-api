@@ -10,22 +10,44 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
+        // Базовый запрос
         $query = Product::query();
 
-        // Фильтрация по свойствам
+        // 1) Фильтрация по свойствам
         if ($request->has('properties')) {
             foreach ($request->input('properties') as $propertyName => $values) {
-                $query->whereHas('propertyValues.property', function ($q) use ($propertyName, $values) {
-                    $q->where('name', $propertyName)
-                        ->whereIn('product_property_values.value', $values);
+                // Для каждого свойства применяем отдельный фильтр
+                $query->whereHas('propertyValues', function ($q) use ($propertyName, $values) {
+                    // Связываем по названию свойства
+                    $q->whereHas('property', function ($qq) use ($propertyName) {
+                        $qq->where('name', $propertyName);
+                    })
+                        // Оставляем только те значения, которые переданы во входящих
+                        ->whereIn('value', $values);
                 });
             }
         }
 
-        // Пагинация по 40
-        $products = $query->with(['propertyValues.property'])->paginate(40);
+        // 2) Собираем уникальные фильтры по всем товарам (для фронта)
+        $filters = [];
+        foreach (\App\Models\Property::with('productValues')->get() as $property) {
+            $filters[$property->name] = $property->productValues
+                ->pluck('value')
+                ->unique()
+                ->values()
+                ->toArray();
+        }
 
-        return response()->json($products);
+        // 3) Загружаем продукты с их свойствами, с пагинацией по 40
+        $products = $query
+            ->with(['propertyValues.property'])
+            ->paginate(40);
+
+        // 4) Возвращаем результат
+        return response()->json([
+//            'filters'  => $filters,     // фильтры для фронта
+            'products' => $products,    // сами товары (с пагинацией)
+        ]);
     }
 
     // Создать товар

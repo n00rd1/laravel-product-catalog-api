@@ -8,20 +8,22 @@ use App\Models\Product;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         $query = Product::query();
 
-        // Фильтрация по имени
-        if ($request->filled('name')) {
-            $query->where('name', 'ilike', '%' . $request->name . '%');
+        // Фильтрация по свойствам
+        if ($request->has('properties')) {
+            foreach ($request->input('properties') as $propertyName => $values) {
+                $query->whereHas('propertyValues.property', function ($q) use ($propertyName, $values) {
+                    $q->where('name', $propertyName)
+                        ->whereIn('product_property_values.value', $values);
+                });
+            }
         }
 
         // Пагинация по 40
-        $products = $query->paginate(40);
+        $products = $query->with(['propertyValues.property'])->paginate(40);
 
         return response()->json($products);
     }

@@ -1,61 +1,158 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel Product Catalog API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Тестовое задание: REST API на Laravel 12 для каталога товаров с произвольными свойствами (опциями) и фильтрацией по ним.
 
-## About Laravel
+Разработать API backend на фреймворке Laravel. В качестве БД использовать MySQL, Postgresql. Ожидаемое время выполнения 4 часа. Результат должен быть выложен на github
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### Требуемый функционал:
+- Необходимо реализовать “каталог товаров”. Товар: название, цена, количество. Свойства (опции) товара: название
+- Свойства товара должны быть произвольными т е заполняться в БД
+- Реализовать фильтрацию списка товаров с множественным выбором, например GET /products?properties[свойство1][]=значение1_своства1&properties[свойство1][]=значение2_своства1&properties[свойство2][]=значение1_свойства2.
+- Нужен api GET метод получения списка товаров (“каталог товаров”) пагинированных по 40
+- Необходимо  сделать фильтр товаров по опциям товаров, например, есть товары "настольный светильник", с опциями цвет плафона, цвет арматруы, бренд. Нужно по опциям отфильтровать товары.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Используется PostgreSQL (Laravel Herd).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+Возможности
+• Хранение товаров с произвольными свойствами (опциями)
+• Фильтрация товаров по значениям свойств (множественный выбор)
+• Пагинация каталога по 40 товаров на страницу
+• Чистая архитектура, тестовые сидеры
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Требования
+• PHP 8.2+
+• Laravel Herd (или любой другой PHP+PostgreSQL стек)
+• PostgreSQL (по умолчанию порт 5432)
+• Composer
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+# Установка и запуск
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+1. Клонируй репозиторий
 
-### Premium Partners
+git clone https://github.com/n00rd1/laravel-product-catalog-api.git
+cd laravel-product-catalog-api
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+2. Установи зависимости
 
-## Contributing
+```bash
+composer install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+npm install
+```
 
-## Code of Conduct
+3. Настрой файл .env
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Используй стандартные параметры подключения к PostgreSQL Herd:
 
-## Security Vulnerabilities
+```
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=catalog_api
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Создай базу данных, если не создана:
 
-## License
+```bash
+psql -U root -h 127.0.0.1 -p 5432 -d postgres
+CREATE DATABASE catalog_api;
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+4. Сгенерируй ключ приложения
+
+```bash
+php artisan key:generate
+```
+
+5. Выполни миграции
+
+```bash
+php artisan migrate:fresh
+```
+
+6. (Опционально) Заполни тестовые данные
+
+```bash
+php artisan db:seed
+```
+
+7. Запусти сервер
+
+```bash
+herd start
+```
+
+---
+
+# Структура базы данных
+
+1. products — товары
+   `(id, name, price, quantity, …)`
+2. properties — свойства товаров
+   `(id, name)`
+3. product_property_values — значения свойств для товаров
+   `(id, product_id, property_id, value)`
+
+---
+
+# Основные шаги разработки
+
+1. Созданы миграции для всех таблиц и выполнены миграции.
+2. Созданы модели: Product, Property, ProductPropertyValue.
+3. Настроены связи между моделями.
+4. Реализован сидер для тестовых данных.
+5. Создан контроллер для API.
+6. Прописан маршрут GET /api/products с поддержкой фильтрации и пагинации.
+7. Реализована логика фильтрации по опциям товаров через параметры вида: `/api/products?properties[цвет][]=белый&properties[цвет][]=синий&properties[бренд][]=Philips`
+8.	Реализована пагинация по 40 товаров на страницу.
+
+---
+
+### Пример API-запроса
+
+`GET /api/products?properties[цвет][]=белый&properties[цвет][]=синий&properties[бренд][]=Philips&page=1`
+
+### Ответ (пример):
+
+```json
+{
+    "current_page": 1,
+    "data": [
+        {
+            "id": 1,
+            "name": "Настольный светильник",
+            "price": "2300.00",
+            "quantity": 10,
+            "properties": [
+                {
+                    "name": "цвет",
+                    "value": "белый"
+                },
+                {
+                    "name": "бренд",
+                    "value": "Philips"
+                }
+            ]
+        },
+        ...
+    ],
+    "per_page": 40,
+    "total": 124,
+    "last_page": 4
+}
+```
+
+Курл с предзаполненными данными для теста
+```curl
+curl --location --globoff 'https://catalog-api.test/api/products?properties[%D0%A6%D0%B2%D0%B5%D1%82][]=%D0%B1%D0%B5%D0%BB%D1%8B%D0%B9&properties[%D0%91%D1%80%D0%B5%D0%BD%D0%B4][]=Philips&properties[%D0%9C%D0%B0%D1%82%D0%B5%D1%80%D0%B8%D0%B0%D0%BB][]=%D0%BC%D0%B5%D1%82%D0%B0%D0%BB%D0%BB'
+```

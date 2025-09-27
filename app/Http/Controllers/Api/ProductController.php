@@ -3,98 +3,141 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\ProductIndexRequest;
+use App\Http\Requests\ProductStoreRequest;
+use App\Http\Requests\ProductUpdateRequest;
+use App\Http\Resources\ProductCollection;
+use App\Http\Resources\ProductResource;
 use App\Models\Product;
 
 class ProductController extends Controller
 {
-    public function index(Request $request)
+    public function index(ProductIndexRequest $request)
     {
-        // Базовый запрос
-        $query = Product::query();
+        // Базовый запрос с оптимизированной загрузкой связей
+        $query = Product::query()
+            ->with(['propertyValues.property']);
 
-        // 1) Фильтрация по свойствам
-        if ($request->has('properties')) {
-            foreach ($request->input('properties') as $propertyName => $values) {
-                // Для каждого свойства применяем отдельный фильтр
-                $query->whereHas('propertyValues', function ($q) use ($propertyName, $values) {
-                    // Связываем по названию свойства
-                    $q->whereHas('property', function ($qq) use ($propertyName) {
-                        $qq->where('name', $propertyName);
-                    })
-                        // Оставляем только те значения, которые переданы во входящих
-                        ->whereIn('value', $values);
-                });
-            }
+        // 1) Фильтрация по свойствам с оптимизацией
+        if ($request->has('properties') && !empty($request->input('properties'))) {
+            $this->applyPropertyFilters($query, $request->input('properties'));
         }
 
-        // 2) Собираем уникальные фильтры по всем товарам (для фронта)
-        $filters = [];
-        foreach (\App\Models\Property::with('productValues')->get() as $property) {
-            $filters[$property->name] = $property->productValues
-                ->pluck('value')
-                ->unique()
-                ->values()
-                ->toArray();
-        }
+        // 2) Загружаем продукты с пагинацией по 40
+        $products = $query->paginate(40);
 
-        // 3) Загружаем продукты с их свойствами, с пагинацией по 40
-        $products = $query
-            ->with(['propertyValues.property'])
-            ->paginate(40);
+        // 3) Собираем фильтры только если они нужны (оптимизация)
+        $filters = $this->getAvailableFilters();
 
-        // 4) Возвращаем результат
+        // 4) Возвращаем результат в правильном формате
         return response()->json([
-//            'filters'  => $filters,     // фильтры для фронта
-            'products' => $products,    // сами товары (с пагинацией)
+            'filters' => $filters,
+            'products' => new ProductCollection($products),
         ]);
     }
 
-    // Создать товар
-    public function store(Request $request)
+    /**
+     * Применяет фильтры по свойствам к запросу
+     */
+    private function applyPropertyFilters($query, array $properties): void
     {
-        $data = $request->validate([
-            'name' => 'required|string',
-            'price' => 'required|numeric|min:0',
-            'quantity' => 'required|integer|min:0',
-            'description' => 'nullable|string',
-            'sku' => 'nullable|string',
-            'image' => 'nullable|string',
-            'is_active' => 'boolean',
-        ]);
-        $product = Product::create($data);
-        return response()->json($product, 201);
+        foreach ($properties as $propertyName => $values) {
+            if (empty($values) || !is_array($values)) {
+                continue;
+            }
+
+            // Очищаем значения от пустых строк
+            $values = array_filter($values, fn($value) => !empty(trim($value)));
+            
+            if (empty($values)) {
+                continue;
+            }
+
+            $query->whereHas('propertyValues', function ($q) use ($propertyName, $values) {
+                $q->whereHas('property', function ($qq) use ($propertyName) {
+                    $qq->where('name', $propertyName);
+                })->whereIn('value', $values);
+            });
+        }
     }
 
-    // Получить один товар
+    /**
+     * Получает доступные фильтры (оптимизированно)
+     */
+    private function getAvailableFilters(): array
+    {
+        // Используем кэширование для фильтров, так как они редко изменяются
+        return cache()->remember('product_filters', 3600, function () {
+            return \App\Models\Property::with(['productValues' => function ($query) {
+                $query->select('property_id', 'value')
+                    ->distinct();
+            }])
+            ->get()
+            ->mapWithKeys(function ($property) {
+                return [
+                    $property->name => $property->productValues
+                        ->pluck('value')
+                        ->unique()
+                        ->values()
+                        ->toArray()
+                ];
+            })
+            ->toArray();
+        });
+    }
+
+    /**
+     * Создать товар
+     */
+    public function store(ProductStoreRequest $request)
+    {
+        $product = Product::create($request->validated());
+        $product->load(['propertyValues.property']);
+        
+        // Очищаем кэш фильтров при добавлении нового товара
+        cache()->forget('product_filters');
+        
+        return response()->json(new ProductResource($product), 201);
+    }
+
+    /**
+     * Получить один товар
+     */
     public function show($id)
     {
         $product = Product::with(['propertyValues.property'])->findOrFail($id);
-        return response()->json($product);
+        return response()->json(new ProductResource($product));
     }
 
-    // Обновить товар
-    public function update(Request $request, $id)
+    /**
+     * Обновить товар
+     */
+    public function update(ProductUpdateRequest $request, $id)
     {
         $product = Product::findOrFail($id);
-        $data = $request->validate([
-            'name' => 'string',
-            'price' => 'numeric|min:0',
-            'quantity' => 'integer|min:0',
-            'description' => 'nullable|string',
-            'sku' => 'nullable|string',
-            'image' => 'nullable|string',
-            'is_active' => 'boolean',
-        ]);
-        $product->update($data);
-        return response()->json($product);
+        $product->update($request->validated());
+        $product->load(['propertyValues.property']);
+        
+        // Очищаем кэш фильтров при обновлении товара
+        cache()->forget('product_filters');
+        
+        return response()->json(new ProductResource($product));
     }
 
-    // Удалить товар
+    /**
+     * Удалить товар
+     */
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
         $product->delete();
-        return response()->json(['success' => true]);
+        
+        // Очищаем кэш фильтров при удалении товара
+        cache()->forget('product_filters');
+        
+        return response()->json([
+            'message' => 'Товар успешно удален',
+            'success' => true
+        ]);
     }
 }

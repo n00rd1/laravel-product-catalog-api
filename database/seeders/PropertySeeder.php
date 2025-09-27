@@ -13,7 +13,15 @@ class PropertySeeder extends Seeder
      */
     public function run(): void
     {
-        $properties = ['Цвет', 'Бренд', 'Материал'];
+        $properties = [
+            'Цвет',
+            'Бренд', 
+            'Материал',
+            'Мощность',
+            'Тип лампы',
+            'Стиль',
+            'Размер'
+        ];
 
         foreach ($properties as $name) {
             Property::create(['name' => $name]);

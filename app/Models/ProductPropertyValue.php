@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ProductPropertyValue extends Model
 {
+    use HasFactory;
+
     // Разрешённые к массовому заполнению поля
     protected $fillable = [
         'product_id',
@@ -27,5 +30,21 @@ class ProductPropertyValue extends Model
     public function property()
     {
         return $this->belongsTo(Property::class);
+    }
+
+    /**
+     * Scope для фильтрации по значению
+     */
+    public function scopeByValue($query, $value)
+    {
+        return $query->where('value', $value);
+    }
+
+    /**
+     * Scope для фильтрации по нескольким значениям
+     */
+    public function scopeByValues($query, array $values)
+    {
+        return $query->whereIn('value', $values);
     }
 }

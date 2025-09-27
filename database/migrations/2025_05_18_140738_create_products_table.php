@@ -22,6 +22,10 @@ return new class extends Migration
             $table->boolean('is_active')->default(true); // Активен или скрыт
             $table->timestamps(); // created_at, updated_at
             $table->softDeletes(); // deleted_at для мягкого удаления
+            
+            // Индексы для оптимизации
+            $table->index(['is_active', 'quantity']);
+            $table->index('sku');
         });
     }
 

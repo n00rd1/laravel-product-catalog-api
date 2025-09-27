@@ -24,6 +24,9 @@ return new class extends Migration
 
             // Уникальная пара "товар+свойство+значение" (опционально)
             $table->unique(['product_id', 'property_id', 'value']);
+            
+            // Индексы для оптимизации
+            $table->index(['property_id', 'value']);
         });
     }
 

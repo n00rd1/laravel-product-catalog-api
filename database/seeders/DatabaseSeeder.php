@@ -20,9 +20,12 @@ class DatabaseSeeder extends Seeder
 //            'email' => 'test@example.com',
 //        ]);
         $this->call([
-            ProductSeeder::class,
             PropertySeeder::class,
+            ProductSeeder::class,
             ProductPropertyValueSeeder::class,
         ]);
+        
+        // Очищаем кэш после заполнения данными
+        cache()->forget('product_filters');
     }
 }

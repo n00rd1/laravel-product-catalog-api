@@ -15,30 +15,38 @@ class ProductPropertyValueSeeder extends Seeder
      */
     public function run(): void
     {
-        $colors = ['белый', 'чёрный', 'синий', 'красный'];
-        $brands = ['Philips', 'Xiaomi', 'Samsung'];
-        $materials = ['металл', 'пластик'];
+        $propertyValues = [
+            'Цвет' => ['белый', 'чёрный', 'синий', 'красный', 'золотой', 'серебряный'],
+            'Бренд' => ['Philips', 'Xiaomi', 'Samsung', 'IKEA', 'Osram', 'Cree'],
+            'Материал' => ['металл', 'пластик', 'стекло', 'дерево', 'хрусталь'],
+            'Мощность' => ['5W', '10W', '15W', '20W', '30W', '50W'],
+            'Тип лампы' => ['LED', 'галогенная', 'люминесцентная', 'накаливания'],
+            'Стиль' => ['современный', 'классический', 'минимализм', 'лофт', 'винтаж'],
+            'Размер' => ['малый', 'средний', 'большой', 'очень большой']
+        ];
 
-        $colorId = Property::where('name', 'Цвет')->first()->id;
-        $brandId = Property::where('name', 'Бренд')->first()->id;
-        $materialId = Property::where('name', 'Материал')->first()->id;
+        $properties = Property::all()->keyBy('name');
 
         foreach (Product::all() as $product) {
-            ProductPropertyValue::create([
-                'product_id' => $product->id,
-                'property_id' => $colorId,
-                'value' => $colors[array_rand($colors)],
-            ]);
-            ProductPropertyValue::create([
-                'product_id' => $product->id,
-                'property_id' => $brandId,
-                'value' => $brands[array_rand($brands)],
-            ]);
-            ProductPropertyValue::create([
-                'product_id' => $product->id,
-                'property_id' => $materialId,
-                'value' => $materials[array_rand($materials)],
-            ]);
+            // Для каждого товара добавляем случайные свойства
+            $selectedProperties = array_rand($propertyValues, rand(3, 5));
+            
+            if (!is_array($selectedProperties)) {
+                $selectedProperties = [$selectedProperties];
+            }
+
+            foreach ($selectedProperties as $propertyName) {
+                if (isset($properties[$propertyName]) && isset($propertyValues[$propertyName])) {
+                    $values = $propertyValues[$propertyName];
+                    $selectedValue = $values[array_rand($values)];
+                    
+                    ProductPropertyValue::create([
+                        'product_id' => $product->id,
+                        'property_id' => $properties[$propertyName]->id,
+                        'value' => $selectedValue,
+                    ]);
+                }
+            }
         }
     }
 }

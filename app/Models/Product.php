@@ -3,9 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Product extends Model
 {
+    use HasFactory, SoftDeletes;
+
     // Разрешённые к массовому заполнению поля
     protected $fillable = [
         'name',
@@ -15,6 +19,15 @@ class Product extends Model
         'sku',
         'image',
         'is_active',
+    ];
+
+    /**
+     * Атрибуты, которые должны быть приведены к типам
+     */
+    protected $casts = [
+        'price' => 'decimal:2',
+        'quantity' => 'integer',
+        'is_active' => 'boolean',
     ];
 
     /**
@@ -32,5 +45,21 @@ class Product extends Model
     {
         return $this->belongsToMany(Property::class, 'product_property_values')
             ->withPivot('value');
+    }
+
+    /**
+     * Scope для активных товаров
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope для товаров с количеством больше 0
+     */
+    public function scopeInStock($query)
+    {
+        return $query->where('quantity', '>', 0);
     }
 }

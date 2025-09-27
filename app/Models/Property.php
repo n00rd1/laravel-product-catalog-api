@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Property extends Model
 {
+    use HasFactory;
+
     // Разрешённые к массовому заполнению поля
     protected $fillable = [
         'name',
@@ -27,5 +30,15 @@ class Property extends Model
     {
         return $this->belongsToMany(Product::class, 'product_property_values')
             ->withPivot('value');
+    }
+
+    /**
+     * Scope для получения уникальных значений свойства
+     */
+    public function scopeWithUniqueValues($query)
+    {
+        return $query->with(['productValues' => function ($q) {
+            $q->select('property_id', 'value')->distinct();
+        }]);
     }
 }

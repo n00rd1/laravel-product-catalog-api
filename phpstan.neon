@@ -1,0 +1,19 @@
+includes:
+    - ./vendor/laravel/horizon/stubs.php
+
+parameters:
+    level: 5
+    paths:
+        - app
+        - config
+        - database
+        - routes
+    ignoreErrors:
+        - '#PHPDoc tag @var#'
+        - '#Call to an undefined method#'
+    excludePaths:
+        - ./vendor
+        - ./storage
+        - ./bootstrap/cache
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false

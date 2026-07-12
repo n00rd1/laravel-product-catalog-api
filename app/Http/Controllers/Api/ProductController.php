@@ -136,7 +136,7 @@ class ProductController extends Controller
         cache()->forget('product_filters');
         
         return response()->json([
-            'message' => 'Товар успешно удален',
+            'message' => __('products.deleted'),
             'success' => true
         ]);
     }

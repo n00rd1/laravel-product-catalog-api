@@ -36,13 +36,6 @@ class ProductIndexRequest extends FormRequest
      */
     public function messages(): array
     {
-        return [
-            'properties.array' => 'Параметр properties должен быть массивом.',
-            'properties.*.array' => 'Каждое свойство должно быть массивом значений.',
-            'properties.*.*.string' => 'Значения свойств должны быть строками.',
-            'properties.*.*.max' => 'Значения свойств не должны превышать 255 символов.',
-            'page.integer' => 'Параметр page должен быть целым числом.',
-            'page.min' => 'Параметр page должен быть больше 0.',
-        ];
+        return __('products.validation');
     }
 }

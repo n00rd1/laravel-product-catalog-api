@@ -1,75 +1,80 @@
+🌐 **English** | [Русский](README.ru.md)
+
 # Laravel Product Catalog API
 
-## Тестовое задание: REST API на Laravel 12 для каталога товаров с произвольными свойствами (опциями) и фильтрацией по ним.
+## Take-home assignment: a Laravel 12 REST API for a product catalog with arbitrary properties (options) and filtering by them.
 
-Разработать API backend на фреймворке Laravel. В качестве БД использовать MySQL, Postgresql. Ожидаемое время выполнения 4 часа. Результат должен быть выложен на github
+Build an API backend with Laravel. Database: MySQL or PostgreSQL. Expected time: 4 hours. The result must be published on GitHub.
 
-### Требуемый функционал:
-- Необходимо реализовать “каталог товаров”. Товар: название, цена, количество. Свойства (опции) товара: название
-- Свойства товара должны быть произвольными т е заполняться в БД
-- Реализовать фильтрацию списка товаров с множественным выбором, например GET /products?properties[свойство1][]=значение1_своства1&properties[свойство1][]=значение2_своства1&properties[свойство2][]=значение1_свойства2.
-- Нужен api GET метод получения списка товаров (“каталог товаров”) пагинированных по 40
-- Необходимо  сделать фильтр товаров по опциям товаров, например, есть товары "настольный светильник", с опциями цвет плафона, цвет арматруы, бренд. Нужно по опциям отфильтровать товары.
+*(Translated from the original Russian assignment — see [README.ru.md](README.ru.md) for the verbatim original.)*
 
-По умолчанию проект работает на SQLite (без установки СУБД), также поддерживаются MySQL и PostgreSQL, как того требует ТЗ.
+### Required functionality:
+- Implement a "product catalog". A product has: name, price, quantity. Product properties (options) have a name.
+- Product properties must be arbitrary, i.e. configurable in the database.
+- Implement catalog filtering with multiple selection, e.g. `GET /products?properties[property1][]=value1&properties[property1][]=value2&properties[property2][]=value1`.
+- Provide a GET endpoint for the product catalog, paginated by 40.
+- Filter products by their option values — e.g. products like "desk lamp" have options such as shade color, frame color, brand; filter the catalog by those options.
 
----
-
-Возможности
-• Хранение товаров с произвольными свойствами (опциями)
-• Фильтрация товаров по значениям свойств (множественный выбор)
-• Пагинация каталога по 40 товаров на страницу
-• Чистая архитектура с API Resource классами
-• Полная валидация входящих параметров с кастомными сообщениями
-• Оптимизированные запросы к базе данных с кэшированием
-• Тестовые сидеры с реалистичными данными
-• Поддержка мягкого удаления товаров
-• Scope методы для фильтрации (активные товары, в наличии)
-• Индексы базы данных для оптимизации производительности
-• Фабрики для тестирования
-• Консольная команда для очистки кэша
+The project runs on SQLite by default (no database server needed), and also supports MySQL and PostgreSQL as required by the assignment.
 
 ---
 
-Требования
+Features
+• Products with arbitrary properties (options)
+• Filtering products by property values (multi-select)
+• Catalog pagination, 40 products per page
+• Clean architecture with API Resource classes
+• Full input validation with custom messages
+• API response localization (English/Russian, switchable per request)
+• Optimized, cached database queries
+• Seeders with realistic sample data
+• Soft-delete support for products
+• Query scopes for filtering (active products, in stock)
+• Database indexes for performance
+• Factories for testing
+• Artisan command to clear the filter cache
+
+---
+
+Requirements
 • PHP 8.2+
 • Composer
 • Node.js + npm
-• Любой PHP-стек на выбор: встроенный сервер (`php artisan serve`), Laravel Herd, Valet, Sail и т. д. — ничего специфичного не требуется
-• СУБД не обязательна: по умолчанию используется SQLite. Для MySQL/PostgreSQL см. шаг 3
+• Any PHP stack you like: the built-in server (`php artisan serve`), Laravel Herd, Valet, Sail, etc. — nothing specific is required
+• No database server required: SQLite is used by default. See step 3 for MySQL/PostgreSQL
 
 ---
 
-# Установка и запуск
+# Setup
 
-1. Клонируй репозиторий
+1. Clone the repository
 
 ```bash
 git clone https://github.com/n00rd1/laravel-product-catalog-api.git
 cd laravel-product-catalog-api
 ```
 
-2. Установи зависимости
+2. Install dependencies
 
 ```bash
 composer install
 npm install
 ```
 
-3. Настрой окружение
+3. Configure the environment
 
 ```bash
 cp .env.example .env
 php artisan key:generate
 ```
 
-По умолчанию `.env.example` уже настроен на SQLite — ничего дополнительно ставить не нужно, достаточно создать файл БД:
+`.env.example` is already configured for SQLite — nothing else to install, just create the database file:
 
 ```bash
 touch database/database.sqlite
 ```
 
-Если нужен MySQL или PostgreSQL (как указано в ТЗ), пропиши в `.env` свои параметры подключения, например для PostgreSQL:
+If you'd rather use MySQL or PostgreSQL (as the assignment requires), set your connection details in `.env`, e.g. for PostgreSQL:
 
 ```
 DB_CONNECTION=pgsql
@@ -80,39 +85,39 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-и создай базу:
+and create the database:
 
 ```bash
 psql -U root -h 127.0.0.1 -p 5432 -d postgres -c "CREATE DATABASE catalog_api;"
 ```
 
-4. Выполни миграции
+4. Run migrations
 
 ```bash
 php artisan migrate:fresh
 ```
 
-5. (Опционально) Заполни тестовые данные
+5. (Optional) Seed sample data
 
 ```bash
 php artisan db:seed
 ```
 
-6. Собери фронтенд-ассеты (нужно для страниц Breeze, самого API это не касается)
+6. Build frontend assets (only needed for the Breeze pages, not the API itself)
 
 ```bash
 npm run build
 ```
 
-7. Запусти сервер
+7. Start the server
 
 ```bash
 php artisan serve
 ```
 
-API будет доступен на `http://127.0.0.1:8000/api/products`.
+The API will be available at `http://127.0.0.1:8000/api/products`.
 
-8. (Опционально) Прогони тесты
+8. (Optional) Run the tests
 
 ```bash
 php artisan test
@@ -120,35 +125,35 @@ php artisan test
 
 ---
 
-# Структура базы данных
+# Database structure
 
-1. products — товары
+1. `products` — products
    `(id, name, price, quantity, …)`
-2. properties — свойства товаров
+2. `properties` — product properties
    `(id, name)`
-3. product_property_values — значения свойств для товаров
+3. `product_property_values` — property values per product
    `(id, product_id, property_id, value)`
 
 ---
 
-# Основные шаги разработки
+# Development overview
 
-1. Созданы миграции для всех таблиц и выполнены миграции.
-2. Созданы модели: Product, Property, ProductPropertyValue.
-3. Настроены связи между моделями.
-4. Реализован сидер для тестовых данных.
-5. Создан контроллер для API.
-6. Прописан маршрут GET /api/products с поддержкой фильтрации и пагинации.
-7. Реализована логика фильтрации по опциям товаров через параметры вида: `/api/products?properties[цвет][]=белый&properties[цвет][]=синий&properties[бренд][]=Philips`
-8.	Реализована пагинация по 40 товаров на страницу.
+1. Migrations created for all tables and run.
+2. Models created: Product, Property, ProductPropertyValue.
+3. Relationships configured between the models.
+4. A seeder implemented for sample data.
+5. An API controller created.
+6. `GET /api/products` route wired up, with filtering and pagination.
+7. Filtering by product options implemented via parameters like: `/api/products?properties[color][]=white&properties[color][]=blue&properties[brand][]=Philips`
+8. Pagination implemented at 40 products per page.
 
 ---
 
-### Пример API-запроса
+### Example API request
 
-`GET /api/products?properties[цвет][]=белый&properties[цвет][]=синий&properties[бренд][]=Philips&page=1`
+`GET /api/products?properties[color][]=white&properties[color][]=blue&properties[brand][]=Philips&page=1`
 
-### Ответ (пример):
+### Example response:
 
 ```json
 {
@@ -186,46 +191,64 @@ php artisan test
 }
 ```
 
-Курл с предзаполненными данными для теста (после `php artisan serve` и `php artisan db:seed`)
+Property names and values are seed data (Russian, matching the original assignment's example — "Цвет" = Color, "Настольный светильник" = Desk lamp), not translated strings; they come from the database, not from the app's localization.
 
-> Кириллица в query-string должна быть URL-encoded целиком — и ключ (имя
-> свойства), и значение. `curl --data-urlencode name=value` кодирует только
-> `value`, поэтому имя свойства нужно закодировать заранее (например,
-> `python3 -c "from urllib.parse import quote; print(quote('properties[Цвет][]'))"`).
-> Иначе PHP считает такой запрос malformed HTTP request и не отвечает.
+A ready-to-run curl example (after `php artisan serve` and `php artisan db:seed`):
+
+> Non-ASCII characters in a query string must be URL-encoded in full — both
+> the key (property name) and the value. `curl --data-urlencode name=value`
+> only encodes the part after `=`, so a non-ASCII key needs encoding up
+> front (e.g. `python3 -c "from urllib.parse import quote; print(quote('properties[Цвет][]'))"`).
+> Otherwise PHP treats the request as malformed and won't respond.
 
 ```bash
 curl --location --globoff 'http://127.0.0.1:8000/api/products?properties[%D0%A6%D0%B2%D0%B5%D1%82][]=%D0%B1%D0%B5%D0%BB%D1%8B%D0%B9'
 ```
 
-(здесь `%D0%A6%D0%B2%D0%B5%D1%82` = «Цвет», `%D0%B1%D0%B5%D0%BB%D1%8B%D0%B9` = «белый»; фильтры можно комбинировать через `&properties[Бренд][]=...`, но при случайном сидере с несколькими фильтрами сразу результат может быть пустым просто по случайности данных)
+(`%D0%A6%D0%B2%D0%B5%D1%82` = "Цвет" (Color), `%D0%B1%D0%B5%D0%BB%D1%8B%D0%B9` = "белый" (white); filters can be combined via `&properties[Бренд][]=...`, but with randomly seeded data, combining several filters at once may legitimately return zero results)
 
 ---
 
-# Дополнительные команды
+# API response language
 
-## Очистка кэша фильтров
+The API responds in English by default. Switch the language of validation and status messages with either:
+
+- a query parameter: `?lang=ru`
+- an `Accept-Language: ru` header
+
+Supported locales are `en` and `ru`; any other value, or no value at all, falls back to English.
+
+```bash
+curl -X POST "http://127.0.0.1:8000/api/products?lang=ru" -d '{}' -H "Content-Type: application/json"
+# => {"message":"Название товара обязательно. (and 2 more errors)", ...}
+```
+
+---
+
+# Additional commands
+
+## Clear the filter cache
 ```bash
 php artisan products:clear-cache
 ```
 
-## Создание тестовых данных с помощью фабрик
+## Generate sample data with factories
 ```bash
-# Создать 100 товаров
+# Create 100 products
 php artisan tinker
 >>> App\Models\Product::factory(100)->create()
 
-# Создать товары с фабриками
+# Create products with specific states
 >>> App\Models\Product::factory()->active()->inStock()->create()
 >>> App\Models\Product::factory()->inactive()->outOfStock()->create()
 ```
 
 ## API Endpoints
 
-| Метод | URL | Описание |
-|-------|-----|----------|
-| GET | `/api/products` | Получить список товаров с фильтрацией и пагинацией |
-| GET | `/api/products/{id}` | Получить конкретный товар |
-| POST | `/api/products` | Создать новый товар |
-| PUT/PATCH | `/api/products/{id}` | Обновить товар |
-| DELETE | `/api/products/{id}` | Удалить товар (мягкое удаление) |
+| Method | URL | Description |
+|--------|-----|--------------|
+| GET | `/api/products` | List products with filtering and pagination |
+| GET | `/api/products/{id}` | Get a single product |
+| POST | `/api/products` | Create a new product |
+| PUT/PATCH | `/api/products/{id}` | Update a product |
+| DELETE | `/api/products/{id}` | Delete a product (soft delete) |

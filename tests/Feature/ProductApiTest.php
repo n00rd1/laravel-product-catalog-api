@@ -156,13 +156,26 @@ class ProductApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJson([
-                'message' => 'Товар успешно удален',
+                'message' => 'Product deleted successfully.',
                 'success' => true
             ]);
 
         $this->assertSoftDeleted('products', [
             'id' => $product->id
         ]);
+    }
+
+    public function test_can_delete_product_with_russian_locale()
+    {
+        $product = Product::factory()->create();
+
+        $response = $this->deleteJson("/api/products/{$product->id}?lang=ru");
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'message' => 'Товар успешно удален.',
+                'success' => true
+            ]);
     }
 
     public function test_validation_errors_on_invalid_data()

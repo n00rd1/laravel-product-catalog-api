@@ -93,7 +93,7 @@ jobs:
         php artisan serve --host=127.0.0.1 --port=8000 &
         sleep 5
         curl -f http://127.0.0.1:8000/api/products || exit 1
-        curl -f "http://127.0.0.1:8000/api/products?properties[Цвет][]=белый" || exit 1
+        curl -f -G http://127.0.0.1:8000/api/products --data-urlencode "properties[Цвет][0]=белый" || exit 1
 
   code-quality:
     runs-on: ubuntu-latest

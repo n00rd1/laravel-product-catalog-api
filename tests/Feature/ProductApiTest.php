@@ -71,7 +71,10 @@ class ProductApiTest extends TestCase
             'value' => 'черный'
         ]);
 
-        $response = $this->getJson('/api/products?properties[Цвет][]=белый');
+        // Кириллица в query-string должна быть URL-encoded, иначе PHP
+        // повреждает байты не-ASCII символов при разборе ключей массива
+        $query = http_build_query(['properties' => ['Цвет' => ['белый']]]);
+        $response = $this->getJson('/api/products?' . $query);
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'products.data');

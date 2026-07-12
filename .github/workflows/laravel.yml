@@ -93,7 +93,10 @@ jobs:
         php artisan serve --host=127.0.0.1 --port=8000 &
         sleep 5
         curl -f http://127.0.0.1:8000/api/products || exit 1
-        curl -f -G http://127.0.0.1:8000/api/products --data-urlencode "properties[Цвет][0]=белый" || exit 1
+        # ключ и значение кодируются целиком: --data-urlencode кодирует только
+        # часть после "=", а "Цвет" в ключе тоже не-ASCII, иначе PHP отдаёт
+        # "Malformed HTTP request" на сырую кириллицу в query-string
+        curl -f --globoff "http://127.0.0.1:8000/api/products?properties[%D0%A6%D0%B2%D0%B5%D1%82][0]=%D0%B1%D0%B5%D0%BB%D1%8B%D0%B9" || exit 1
 
   code-quality:
     runs-on: ubuntu-latest

@@ -11,7 +11,7 @@
 - Нужен api GET метод получения списка товаров (“каталог товаров”) пагинированных по 40
 - Необходимо  сделать фильтр товаров по опциям товаров, например, есть товары "настольный светильник", с опциями цвет плафона, цвет арматруы, бренд. Нужно по опциям отфильтровать товары.
 
-Используется PostgreSQL (Laravel Herd).
+По умолчанию проект работает на SQLite (без установки СУБД), также поддерживаются MySQL и PostgreSQL, как того требует ТЗ.
 
 ---
 
@@ -33,9 +33,10 @@
 
 Требования
 • PHP 8.2+
-• Laravel Herd (или любой другой PHP+PostgreSQL стек)
-• PostgreSQL (по умолчанию порт 5432)
 • Composer
+• Node.js + npm
+• Любой PHP-стек на выбор: встроенный сервер (`php artisan serve`), Laravel Herd, Valet, Sail и т. д. — ничего специфичного не требуется
+• СУБД не обязательна: по умолчанию используется SQLite. Для MySQL/PostgreSQL см. шаг 3
 
 ---
 
@@ -43,22 +44,32 @@
 
 1. Клонируй репозиторий
 
+```bash
 git clone https://github.com/n00rd1/laravel-product-catalog-api.git
 cd laravel-product-catalog-api
+```
 
 2. Установи зависимости
 
 ```bash
 composer install
-```
-
-```bash
 npm install
 ```
 
-3. Настрой файл .env
+3. Настрой окружение
 
-Используй стандартные параметры подключения к PostgreSQL Herd:
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+По умолчанию `.env.example` уже настроен на SQLite — ничего дополнительно ставить не нужно, достаточно создать файл БД:
+
+```bash
+touch database/database.sqlite
+```
+
+Если нужен MySQL или PostgreSQL (как указано в ТЗ), пропиши в `.env` свои параметры подключения, например для PostgreSQL:
 
 ```
 DB_CONNECTION=pgsql
@@ -69,35 +80,42 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-Создай базу данных, если не создана:
+и создай базу:
 
 ```bash
-psql -U root -h 127.0.0.1 -p 5432 -d postgres
-CREATE DATABASE catalog_api;
+psql -U root -h 127.0.0.1 -p 5432 -d postgres -c "CREATE DATABASE catalog_api;"
 ```
 
-4. Сгенерируй ключ приложения
-
-```bash
-php artisan key:generate
-```
-
-5. Выполни миграции
+4. Выполни миграции
 
 ```bash
 php artisan migrate:fresh
 ```
 
-6. (Опционально) Заполни тестовые данные
+5. (Опционально) Заполни тестовые данные
 
 ```bash
 php artisan db:seed
 ```
 
+6. Собери фронтенд-ассеты (нужно для страниц Breeze, самого API это не касается)
+
+```bash
+npm run build
+```
+
 7. Запусти сервер
 
 ```bash
-herd start
+php artisan serve
+```
+
+API будет доступен на `http://127.0.0.1:8000/api/products`.
+
+8. (Опционально) Прогони тесты
+
+```bash
+php artisan test
 ```
 
 ---
@@ -168,10 +186,19 @@ herd start
 }
 ```
 
-Курл с предзаполненными данными для теста
-```curl
-curl --location --globoff 'https://catalog-api.test/api/products?properties[%D0%A6%D0%B2%D0%B5%D1%82][]=%D0%B1%D0%B5%D0%BB%D1%8B%D0%B9&properties[%D0%91%D1%80%D0%B5%D0%BD%D0%B4][]=Philips&properties[%D0%9C%D0%B0%D1%82%D0%B5%D1%80%D0%B8%D0%B0%D0%BB][]=%D0%BC%D0%B5%D1%82%D0%B0%D0%BB%D0%BB'
+Курл с предзаполненными данными для теста (после `php artisan serve` и `php artisan db:seed`)
+
+> Кириллица в query-string должна быть URL-encoded целиком — и ключ (имя
+> свойства), и значение. `curl --data-urlencode name=value` кодирует только
+> `value`, поэтому имя свойства нужно закодировать заранее (например,
+> `python3 -c "from urllib.parse import quote; print(quote('properties[Цвет][]'))"`).
+> Иначе PHP считает такой запрос malformed HTTP request и не отвечает.
+
+```bash
+curl --location --globoff 'http://127.0.0.1:8000/api/products?properties[%D0%A6%D0%B2%D0%B5%D1%82][]=%D0%B1%D0%B5%D0%BB%D1%8B%D0%B9'
 ```
+
+(здесь `%D0%A6%D0%B2%D0%B5%D1%82` = «Цвет», `%D0%B1%D0%B5%D0%BB%D1%8B%D0%B9` = «белый»; фильтры можно комбинировать через `&properties[Бренд][]=...`, но при случайном сидере с несколькими фильтрами сразу результат может быть пустым просто по случайности данных)
 
 ---
 
